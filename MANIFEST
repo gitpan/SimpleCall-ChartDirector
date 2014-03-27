@@ -24,3 +24,5 @@ xt/08.chart_stacked_area.png
 xt/08.chart_stacked_area.t
 xt/09.chart_multi_bar.png
 xt/09.chart_multi_bar.t
+xt/10.chart_scatter.png
+xt/10.chart_scatter.t

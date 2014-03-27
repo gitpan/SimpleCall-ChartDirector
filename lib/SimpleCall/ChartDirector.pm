@@ -9,6 +9,7 @@ require Exporter;
   chart_pyramid chart_pie
   chart_spline chart_line
   chart_stacked_bar chart_stacked_area chart_multi_bar
+  chart_scatter
 );
 
 use Encode;
@@ -279,6 +280,22 @@ sub chart_multi_bar {
     chart_xy( $data, %opt );
 }
 
+sub chart_scatter {
+    my ($data, %opt) = @_;
+    $opt{xy_chart_layer_sub} = sub {
+        my ($c) = @_;
+        my $layer_sub = sub {
+            my ($r) = @_;
+            $c->addScatterLayer($r->{data}[0], $r->{data}[1], 
+                $r->{legend}, 
+                $r->{symbol_shape}, $r->{symbol_shape_size}, 
+                $r->{color});
+        };
+        return $layer_sub;
+    };
+    chart_xy( $data, %opt );
+}
+
 sub chart_xy {    # XY型chart 基础函数
     my ( $data, %opt ) = @_;
     set_default_option( \%opt );
@@ -310,21 +327,37 @@ sub chart_xy {    # XY型chart 基础函数
         and exists $opt{y_axis_upper_limit} );
 
     #画什么样的图
-    my $layer = $opt{xy_chart_layer_sub}->($c);
-    $layer->setLineWidth( $opt{line_width} );
-
     my $color = set_color( \%opt );
-    set_data_label( $layer, \%opt );
 
-    for ( my $i = 0 ; $i <= $#$data ; $i++ ) {
-        my $d = $data->[$i];
-        $_ ||= 0 for @$d;
-        my $temp = $layer->addDataSet( $d, $color->[$i], $opt{legend}[$i] );
 
-        next unless ( $opt{with_symbol_shape} );
-        $temp->setDataSymbol( $opt{symbol_shape}[$i], 
-            $opt{symbol_shape_size} );
-    } ## end for ( my $i = 0; $i <= ...)
+    my $layer = $opt{xy_chart_layer_sub}->($c);
+    if(ref($layer) eq 'CODE'){
+        for ( my $i = 0 ; $i <= $#$data ; $i++ ) {
+            my $d = $data->[$i];
+            $layer->({
+                data=> $d, 
+                color => $color->[$i], 
+                legend => $opt{legend}[$i], 
+                symbol_shape => $opt{symbol_shape}[$i], 
+                symbol_shape_size => $opt{symbol_shape_size}, 
+                with_symbol_shape => $opt{with_symbol_shape}, 
+            });
+        }
+        #$c->addScatterLayer($dataX0, $dataY0, "Genetically Engineered", $perlchartdir::DiamondSymbol, 13, 0xff9933);
+    }else{
+        $layer->setLineWidth( $opt{line_width} );
+        set_data_label( $layer, \%opt );
+        for ( my $i = 0 ; $i <= $#$data ; $i++ ) {
+            my $d = $data->[$i];
+            $_ ||= 0 for @$d;
+            my $temp = $layer->addDataSet( $d, $color->[$i], $opt{legend}[$i] );
+
+            next unless ( $opt{with_symbol_shape} );
+            $temp->setDataSymbol( $opt{symbol_shape}[$i], 
+                $opt{symbol_shape_size} );
+        } ## end for ( my $i = 0; $i <= ...)
+    }
+
 
     set_legend( $c, \%opt );
     $c->makeChart( $opt{file} );
