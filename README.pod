@@ -2,17 +2,17 @@
 
 =encoding utf8
 
-=head1 名称
+=head1 NAME
 
 L<SimpleCall::ChartDirector>
 
-=head1 说明
+=head1 Require
  
-- 需要安装ChartDirector库
+- 需要安装 ChartDirector 库
 
 - 需要把字体文件放到chart_director的fonts目录下，例如msyh.ttf/msyhbd.ttf
 
-=head1 函数
+=head1 FUNCTION
 
 =begin html
 

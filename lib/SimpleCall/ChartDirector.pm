@@ -15,6 +15,8 @@ require Exporter;
 use Encode;
 use POSIX qw/strtod/;
 
+our $VERSION=0.03;
+
 #需要微软雅黑字体，放到chart_director的fonts目录下
 our $CHART_FONT      = 'msyh.ttf';
 our $CHART_BOLD_FONT = 'msyhbd.ttf';
