@@ -15,7 +15,7 @@ require Exporter;
 use Encode;
 use POSIX qw/strtod/;
 
-our $VERSION=0.03;
+our $VERSION=0.04;
 
 #需要微软雅黑字体，放到chart_director的fonts目录下
 our $CHART_FONT      = 'msyh.ttf';
@@ -24,7 +24,7 @@ our $CHART_BOLD_FONT = 'msyhbd.ttf';
 #颜色表，支持指定<DATA>中的颜色名，或者16进制值
 my @COLOR_HEXCODE = <DATA>;
 our %COLOR_HEXCODE = map { chomp; split; } @COLOR_HEXCODE;
-our @DEFAULT_COLORLIST = qw/Red1 Green Yellow LightBlue1 Purple LightGoldenrod/;
+our @DEFAULT_COLORLIST = qw/LightBlue1 Green Yellow Red1 Purple LightGoldenrod/;
 our @DEFAULT_SYMBOL_SHAPE = (
     $perlchartdir::DiamondSymbol,       $perlchartdir::TriangleSymbol,
     $perlchartdir::CircleSymbol,        $perlchartdir::SquareSymbol,
@@ -41,7 +41,6 @@ use perlchartdir;
 sub set_data_label {
     ##描点的旁边加上具体数据
     my ( $layer, $opt ) = @_;
-    return unless ( $opt->{with_data_label} );
 
     $layer->setDataLabelFormat( $opt->{data_label_format} );
 
@@ -87,11 +86,11 @@ sub set_default_option {
     my ($opt) = @_;
     $opt->{width}             ||= 800;
     $opt->{height}            ||= 330;
-    $opt->{plot_area}         ||= [ 75, 70, 600, 200 ];
+    $opt->{plot_area}         ||= [ 75, 70, 700, 200 ];
     $opt->{title_font_size}   ||= 12;
     $opt->{title_font}        ||= $CHART_BOLD_FONT;
     $opt->{default_font}      ||= $CHART_FONT;
-    $opt->{default_font_bold} ||= $CHART_FONT;
+    $opt->{default_font_bold} ||= $CHART_BOLD_FONT;
     $opt->{label_font_size}   ||= 10;
     $opt->{label_font}        ||= $CHART_FONT;
     $opt->{legend}            ||= $opt->{label};
@@ -104,10 +103,10 @@ sub set_default_option {
     $opt->{data_label_format}    ||= '{value|0}',
 
       $opt->{y_axis_font_size} ||= 10;
-    $opt->{y_axis_font} ||= $CHART_BOLD_FONT;
+    $opt->{y_axis_font} ||= $CHART_FONT;
 
     $opt->{x_axis_font_size}    ||= 10;
-    $opt->{x_axis_font}         ||= $CHART_BOLD_FONT;
+    $opt->{x_axis_font}         ||= $CHART_FONT;
     $opt->{x_axis_font_color}   ||= $perlchartdir::TextColor,
     $opt->{x_axis_font_angle} ||= 0,
 
@@ -153,14 +152,16 @@ sub chart_bar {
     $c->addTitle( $opt{title}, $opt{title_font}, $opt{title_font_size} );
     $c->setPlotArea( @{ $opt{plot_area} } );
 
+    set_axis_option($c, %opt);
+
     $c->swapXY() if ( $opt{is_horizon_bar} );
 
     my $color = set_color( \%opt );
-    $c->addBarLayer3( $data, $color )->setBorderColor( -1, 1 );
-    $c->xAxis()->setLabels( $opt{label} );
+    my $layer = $c->addBarLayer3( $data, $color );
+    $layer->setAggregateLabelFormat($opt{data_label_format}) if($opt{with_data_label});
+    $layer->setBorderColor( -1, 1 );
 
     $c->makeChart( $opt{file} );
-    
     return $opt{file};
 } ## end sub draw_pie
 
@@ -255,8 +256,12 @@ sub chart_stacked_bar {
     $opt{xy_chart_layer_sub} = sub {
         my ($c) = @_;
         my $layer = $c->addBarLayer2( $perlchartdir::Stack, 8 );
-        $layer->setAggregateLabelStyle();
-        $layer->setDataLabelStyle();
+
+        if($opt{with_data_label}){
+            $layer->setAggregateLabelStyle();
+            $layer->setDataLabelStyle();
+        }
+
         return $layer;
     };
     chart_xy( $data, %opt );
@@ -298,13 +303,8 @@ sub chart_scatter {
     chart_xy( $data, %opt );
 }
 
-sub chart_xy {    # XY型chart 基础函数
-    my ( $data, %opt ) = @_;
-    set_default_option( \%opt );
-
-    my $c = new XYChart( $opt{width}, $opt{height} );
-    $c->setPlotArea( @{ $opt{plot_area} } );
-    $c->addTitle( $opt{title}, $opt{title_font}, $opt{title_font_size} );
+sub set_axis_option {
+    my ($c, %opt) = @_;
 
     #x
     set_axis_mark( $c->xAxis(), $opt{x_axis_mark} )
@@ -328,6 +328,19 @@ sub chart_xy {    # XY型chart 基础函数
       if (  exists $opt{y_axis_lower_limit}
         and exists $opt{y_axis_upper_limit} );
 
+}
+
+sub chart_xy {    # XY型chart 基础函数
+    my ( $data, %opt ) = @_;
+    set_default_option( \%opt );
+
+    my $c = new XYChart( $opt{width}, $opt{height} );
+    $c->setPlotArea( @{ $opt{plot_area} } );
+    $c->addTitle( $opt{title}, $opt{title_font}, $opt{title_font_size} );
+
+    #x/y 轴
+    set_axis_option($c, %opt);
+
     #画什么样的图
     my $color = set_color( \%opt );
 
@@ -348,7 +361,7 @@ sub chart_xy {    # XY型chart 基础函数
         #$c->addScatterLayer($dataX0, $dataY0, "Genetically Engineered", $perlchartdir::DiamondSymbol, 13, 0xff9933);
     }else{
         $layer->setLineWidth( $opt{line_width} );
-        set_data_label( $layer, \%opt );
+        set_data_label( $layer, \%opt ) if($opt{with_data_label});
         for ( my $i = 0 ; $i <= $#$data ; $i++ ) {
             my $d = $data->[$i];
             $_ ||= 0 for @$d;
