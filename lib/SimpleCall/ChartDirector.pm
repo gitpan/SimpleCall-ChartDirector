@@ -5,7 +5,7 @@ require Exporter;
 
 @ISA    = qw(Exporter);
 @EXPORT = qw(
-  chart_bar chart_horizon_bar
+  chart_bar 
   chart_pyramid chart_pie
   chart_spline chart_line
   chart_stacked_bar chart_stacked_area chart_multi_bar
@@ -15,7 +15,7 @@ require Exporter;
 use Encode;
 use POSIX qw/strtod/;
 
-our $VERSION=0.04;
+our $VERSION=0.05;
 
 #需要微软雅黑字体，放到chart_director的fonts目录下
 our $CHART_FONT      = 'msyh.ttf';
@@ -25,7 +25,7 @@ our $CHART_BOLD_FONT = 'msyhbd.ttf';
 my @COLOR_HEXCODE = <DATA>;
 our %COLOR_HEXCODE = map { chomp; split; } @COLOR_HEXCODE;
 our @DEFAULT_COLORLIST = qw/LightBlue1 Green Yellow Red1 Purple LightGoldenrod/;
-our @DEFAULT_SYMBOL_SHAPE = (
+our @DEFAULT_DATA_SYMBOL = (
     $perlchartdir::DiamondSymbol,       $perlchartdir::TriangleSymbol,
     $perlchartdir::CircleSymbol,        $perlchartdir::SquareSymbol,
     $perlchartdir::LeftTriangleSymbol,  $perlchartdir::InvertedTriangleSymbol,
@@ -34,6 +34,23 @@ our @DEFAULT_SYMBOL_SHAPE = (
     $perlchartdir::CrossSymbol,         $perlchartdir::Cross2Symbol,
     $perlchartdir::GlassSphereSymbol,   $perlchartdir::GlassSphere2Symbol,
     $perlchartdir::SolidSphereSymbol,
+);
+our @DEFAULT_BAR_SHAPE = (
+$perlchartdir::SquareShape,
+$perlchartdir::DiamondShape,
+$perlchartdir::TriangleShape, 
+$perlchartdir::RightTriangleShape, 
+$perlchartdir::LeftTriangleShape, 
+$perlchartdir::InvertedTriangleShape, 
+$perlchartdir::CircleShape, 
+$perlchartdir::GlassSphereShape, 
+$perlchartdir::GlassSphere2Shape, 
+$perlchartdir::SolidSphereShape, 
+perlchartdir::StarShape(6), # 3 .. 10, 
+perlchartdir::PolygonShape(6), #5 .. 6, 
+perlchartdir::Polygon2Shape(6), # 5..6
+perlchartdir::CrossShape(0.3), # 0.1 .. 0.7
+perlchartdir::Cross2Shape(0.3), # 0.1 .. 0.7
 );
 
 use perlchartdir;
@@ -110,8 +127,10 @@ sub set_default_option {
     $opt->{x_axis_font_color}   ||= $perlchartdir::TextColor,
     $opt->{x_axis_font_angle} ||= 0,
 
-    $opt->{symbol_shape} ||= \@DEFAULT_SYMBOL_SHAPE;
-    $opt->{symbol_shape_size} ||= 9;
+    $opt->{data_symbol} ||= \@DEFAULT_DATA_SYMBOL;
+    $opt->{data_symbol_size} ||= 9;
+
+    $opt->{bar_shape} ||= \@DEFAULT_BAR_SHAPE, 
 
     #层内标签
     $opt->{center_label_format} ||= "{percent}%";
@@ -124,6 +143,9 @@ sub set_default_option {
 
     #横坐标，纵坐标，半径
     $opt->{pie_size} ||= [ 450, 290, 180 ];
+
+    #图层内 3d 形状深度
+    $opt->{layer_3d_depth} ||= undef, 
 }
 
 sub set_axis_mark {
@@ -137,12 +159,6 @@ sub set_axis_mark {
     }
 }
 
-sub chart_horizon_bar {
-    my ( $data, %opt ) = @_;
-    $opt{is_horizon_bar} = 1;
-    return chart_bar( $data, %opt );
-}
-
 sub chart_bar {
     my ( $data, %opt ) = @_;
     set_default_option( \%opt );
@@ -154,7 +170,7 @@ sub chart_bar {
 
     set_axis_option($c, %opt);
 
-    $c->swapXY() if ( $opt{is_horizon_bar} );
+    $c->swapXY() if ( $opt{is_horizontal} );
 
     my $color = set_color( \%opt );
     my $layer = $c->addBarLayer3( $data, $color );
@@ -255,7 +271,7 @@ sub chart_stacked_bar {
     my ( $data, %opt ) = @_;
     $opt{xy_chart_layer_sub} = sub {
         my ($c) = @_;
-        my $layer = $c->addBarLayer2( $perlchartdir::Stack, 8 );
+        my $layer = $c->addBarLayer2( $perlchartdir::Stack, $opt{layer_3d_depth} );
 
         if($opt{with_data_label}){
             $layer->setAggregateLabelStyle();
@@ -271,7 +287,7 @@ sub chart_stacked_area {
     my ( $data, %opt ) = @_;
     $opt{xy_chart_layer_sub} = sub {
         my ($c) = @_;
-        my $layer = $c->addAreaLayer2($perlchartdir::Stack);
+        my $layer = $c->addAreaLayer2($perlchartdir::Stack, $opt{layer_3d_depth});
         return $layer;
     };
     chart_xy( $data, %opt );
@@ -281,7 +297,7 @@ sub chart_multi_bar {
     my ( $data, %opt ) = @_;
     $opt{xy_chart_layer_sub} = sub {
         my ($c) = @_;
-        my $layer = $c->addBarLayer2( $perlchartdir::Side, 3 );
+        my $layer = $c->addBarLayer2( $perlchartdir::Side, $opt{layer_3d_depth});
         return $layer;
     };
     chart_xy( $data, %opt );
@@ -295,7 +311,7 @@ sub chart_scatter {
             my ($r) = @_;
             $c->addScatterLayer($r->{data}[0], $r->{data}[1], 
                 $r->{legend}, 
-                $r->{symbol_shape}, $r->{symbol_shape_size}, 
+                $r->{data_symbol}, $r->{data_symbol_size}, 
                 $r->{color});
         };
         return $layer_sub;
@@ -338,8 +354,11 @@ sub chart_xy {    # XY型chart 基础函数
     $c->setPlotArea( @{ $opt{plot_area} } );
     $c->addTitle( $opt{title}, $opt{title_font}, $opt{title_font_size} );
 
+
     #x/y 轴
     set_axis_option($c, %opt);
+
+    $c->swapXY() if ( $opt{is_horizontal} );
 
     #画什么样的图
     my $color = set_color( \%opt );
@@ -353,9 +372,9 @@ sub chart_xy {    # XY型chart 基础函数
                 data=> $d, 
                 color => $color->[$i], 
                 legend => $opt{legend}[$i], 
-                symbol_shape => $opt{symbol_shape}[$i], 
-                symbol_shape_size => $opt{symbol_shape_size}, 
-                with_symbol_shape => $opt{with_symbol_shape}, 
+                data_symbol => $opt{data_symbol}[$i], 
+                data_symbol_size => $opt{data_symbol_size}, 
+                with_data_symbol => $opt{with_data_symbol}, 
             });
         }
         #$c->addScatterLayer($dataX0, $dataY0, "Genetically Engineered", $perlchartdir::DiamondSymbol, 13, 0xff9933);
@@ -365,11 +384,9 @@ sub chart_xy {    # XY型chart 基础函数
         for ( my $i = 0 ; $i <= $#$data ; $i++ ) {
             my $d = $data->[$i];
             $_ ||= 0 for @$d;
-            my $temp = $layer->addDataSet( $d, $color->[$i], $opt{legend}[$i] );
-
-            next unless ( $opt{with_symbol_shape} );
-            $temp->setDataSymbol( $opt{symbol_shape}[$i], 
-                $opt{symbol_shape_size} );
+            $layer->addDataSet( $d, $color->[$i], $opt{legend}[$i] );
+            $layer->setDataSymbol( $opt{data_symbol}[$i], $opt{data_symbol_size} ) if($opt{with_data_symbol});
+            $layer->setBarShape($opt{bar_shape}[$i], $i) if($opt{with_bar_shape});
         } ## end for ( my $i = 0; $i <= ...)
     }
 

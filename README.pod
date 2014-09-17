@@ -31,21 +31,14 @@ L<SimpleCall::ChartDirector>
         plot_area => [ 75, 70, 600, 200 ], 
         title_font_size => 12, 
         color => [ qw/Yellow Green Red1/ ], 
+        # is_horizontal => 1,  #条形图
     );
 
 =begin html
 
 <img src="xt/01.chart_bar.png"></img>
 
-=end html
-
-=head2  chart_horizon_bar 条形图
-
-    参数同 chart_bar
-
-=begin html
-
-<img src="xt/02.chart_horizon_bar.png"></img>
+<img src="xt/02.chart_bar_horizontal.png"></img>
 
 =end html
 
@@ -152,6 +145,7 @@ L<SimpleCall::ChartDirector>
     
     参数同 chart_line
 
+
 =begin html
 
 <img src="xt/07.chart_stacked_bar.png"></img>
@@ -172,6 +166,10 @@ L<SimpleCall::ChartDirector>
 =head2 chart_multi_bar 多柱图
 
     参数同 chart_line
+
+    # is_horizontal => 1,  #条形图
+    # with_bar_shape => 1, #不同legend对应不同形状的柱子
+    # layer_3d_depth => 4,  #图层内 3d 形状深度
 
 =begin html
 

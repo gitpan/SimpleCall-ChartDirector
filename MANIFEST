@@ -10,8 +10,7 @@ dist.ini
 lib/SimpleCall/ChartDirector.pm
 xt/01.chart_bar.png
 xt/01.chart_bar.t
-xt/02.chart_horizon_bar.png
-xt/02.chart_horizon_bar.t
+xt/02.chart_bar_horizontal.png
 xt/03.chart_pyramid.png
 xt/03.chart_pyramid.t
 xt/04.chart_pie.png

@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 use utf8;
+use lib 'd:/copy/save/windows/chart_director';
+use lib '../lib';
 use SimpleCall::ChartDirector;
 
 chart_multi_bar([[5, 6, 7, 8], [1, 2, 6, 9], [3, 9, 2, 4], ], 
@@ -13,11 +15,17 @@ chart_multi_bar([[5, 6, 7, 8], [1, 2, 6, 9], [3, 9, 2, 4], ],
     title_font_size => 12, 
     color => [ qw/Yellow Green Red1/ ], 
 
+
     #图例
     with_legend => 1, 
     legend_pos_x => 320, 
     legend_pos_y => 35, 
     legend_is_vertical => 0, 
+
+    #is_horizontal=> 1, #条形
+
+    with_bar_shape => 1, #不同形状的柱子
+    layer_3d_depth => 4, #3d深度
 
 #Y轴格式
 #例如加一个百分号：'y_label_format'=> '{value}%',
