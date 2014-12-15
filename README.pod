@@ -108,9 +108,9 @@ L<SimpleCall::ChartDirector>
         legend_is_vertical => 0, 
 
         #描点加上不同形状
-        with_symbol_shape => 1, 
+        with_data_symbol => 1, 
 
-        #描点加上标签
+        #描点加上数值标签
         with_data_label => 1, 
 
         #Y轴格式,例如'{value}%',
@@ -145,6 +145,7 @@ L<SimpleCall::ChartDirector>
     
     参数同 chart_line
 
+    with_aggregate_data_label => 1,  #显示多个legend的数值总和
 
 =begin html
 
@@ -195,6 +196,26 @@ L<SimpleCall::ChartDirector>
 =begin html
 
 <img src="xt/10.chart_scatter.png"></img>
+
+=end html
+
+=head2 chart_percentage_bar 累积百分比柱状图
+    
+    参数同 chart_stacked_bar
+
+=begin html
+
+<img src="xt/11.chart_percentage_bar.png"></img>
+
+=end html
+
+=head2 chart_percentage_area 百分比面积图
+    
+    参数同 chart_stacked_area
+
+=begin html
+
+<img src="xt/12.chart_percentage_area.png"></img>
 
 =end html
 

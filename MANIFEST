@@ -27,3 +27,7 @@ xt/09.chart_multi_bar.png
 xt/09.chart_multi_bar.t
 xt/10.chart_scatter.png
 xt/10.chart_scatter.t
+xt/11.chart_percentage_bar.png
+xt/11.chart_percentage_bar.t
+xt/12.chart_percentage_area.png
+xt/12.chart_percentage_area.t

@@ -14,4 +14,4 @@ meta-spec:
 name: SimpleCall-ChartDirector
 resources:
   repository: https://github.com/abbypan/SimpleCall-ChartDirector.git
-version: '0.05'
+version: '0.06'

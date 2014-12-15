@@ -1,11 +1,9 @@
 #!/usr/bin/perl
 use utf8;
-use lib 'd:/copy/save/windows/chart_director';
-use lib '../lib';
 use SimpleCall::ChartDirector;
 
-chart_line([[5, 6, 7, 8], [1, 2, 6, 9], [3, 9, 2, 4], ], 
-    file=> '05.chart_line.png', 
+chart_percentage_area([[5, 6, 7, 8], [1, 2, 6, 9], [3, 9, 2, 4], ], 
+    file=> '12.chart_percentage_area.png', 
     title => '测试一二', 
     label => [ 'day1', 'day3', 'day5', 'day7'] , 
     legend => [ 'aa','bb','cc'] , 
@@ -21,19 +19,14 @@ chart_line([[5, 6, 7, 8], [1, 2, 6, 9], [3, 9, 2, 4], ],
     legend_pos_y => 35, 
     legend_is_vertical => 0, 
 
-    #描点加上不同形状
-    with_data_symbol => 1, 
-
-    #描点加上标签
-    with_data_label => 1, 
-
-    #Y轴格式,例如'{value}%',
+#Y轴格式
+#例如加一个百分号：'y_label_format'=> '{value}%',
     #y_label_format => '{value}', 
 
-    #Y轴坐标刻度
+#Y轴坐标刻度
     #y_tick_density => 1, 
 
-    #Y轴取值范围
+#Y轴取值范围
     #y_axis_lower_limit => 0, 
     #y_axis_upper_limit => 10, 
 );
